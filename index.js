@@ -6,9 +6,115 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
-  app.on('issues.opened', async context => {
+  const branches = [
+    {
+      label: 'breakingchange',
+      prefix: 'breakingchange'
+    },
+    {
+      label: 'enhancement',
+      prefix: 'feature'
+    },
+    {
+      label: 'bug',
+      prefix: 'fix'
+    },
+    {
+      label: 'ci',
+      prefix: 'ci'
+    },
+    {
+      label: 'documentation',
+      prefix: 'doc'
+    }
+  ]
+
+  app.on('issues.opened', context => {
     const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
-    return context.github.issues.createComment(issueComment)
+    context.github.issues.createComment(issueComment)
+    const owner = context.payload.repository.owner.login
+    const repo = context.payload.repository.name
+    context.github.projects.listForRepo({owner, repo, state: 'open'})
+    .then( res => {
+      const kanban = res.data.filter(project => project.name === 'kanban automatic')
+      if(kanban.length === 1){
+        context.github.projects.listColumns({project_id: kanban[0].id})
+        .then(resColumns => {
+          const columns = resColumns.data.filter(column => column.name === 'To do')
+          if(columns.length === 1){
+            context.github.projects.createCard({
+              column_id: columns[0].id,
+              content_type: 'Issue',
+              content_id: context.payload.issue.id
+            })
+          }
+        })
+      }
+    }).catch(err => {
+      app.log.error(err)
+    })
+    return 0
+  })
+
+  app.on('issue_comment.created', context => {
+    if(context.payload.comment.body === '/cib'){
+      const owner = context.payload.repository.owner.login
+      const repo = context.payload.repository.name
+      const issueNumber = context.payload.issue.number
+      const assignees = context.payload.comment.user.login
+      context.github.issues.addAssignees({owner, repo, issue_number: issueNumber, assignees})
+      context.github.issues.listLabelsOnIssue({owner, repo, issue_number: issueNumber})
+      .then(resLabels => {
+        if(resLabels.data.length < 1){
+          const issueComment = context.issue({ body: " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ "})
+          context.github.issues.createComment(issueComment)
+          return 0
+        }
+        branches.some(branche => {
+          const label = resLabels.data.find(label => label.name === branche.label)
+          if(label !== undefined){
+            context.github.git.getRef({owner, repo, ref: 'heads/master'})
+            .then(resMaster => {
+              const masterSha = resMaster.data.object.sha
+              const name = context.payload.issue.title.toLowerCase().replace(/\s+/g,'_')
+              const ref = `refs/heads/${branche.prefix}/${issueNumber}/${name}`
+              context.github.git.createRef({owner, repo, ref, sha: masterSha})
+            })
+            return true
+          }
+        })
+        
+      })
+    }
+  })
+
+  app.on(['pull_request.opened','pull_request.reopened', 'pull_request.edited'], context => {
+    const owner = context.payload.repository.owner.login
+    const repo = context.payload.repository.name
+    const head_sha = context.payload.pull_request.head.sha
+    const name = 'Hudson check commit name'
+    const images = {
+      alt: 'Hudson image',
+      url: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2Fhudson&psig=AOvVaw2dCnaQ3MErqJJl47mEjoLI&ust=1583515079900000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCKC93sDrg-gCFQAAAAAdAAAAABAD'
+    }
+    const status = 'in_progress'
+    context.github.checks.create({owner,repo, head_sha, name, images, status})
+    .then(resCheck => {
+      const arrayBranches = context.payload.pull_request.head.ref.split('/')
+      const title = context.payload.pull_request.title
+      const check_run_id = resCheck.data.id
+      if(title !== `[${arrayBranches[0].toUpperCase()}] ${arrayBranches[2]}`) {
+        const conclusion = 'failure'
+        context.github.checks.update({owner, repo, check_run_id, conclusion, ouput})
+      }else {
+        const conclusion = 'success'
+        context.github.checks.update({owner, repo, check_run_id, conclusion})
+      }
+    })
+  })
+
+  app.on('pull_request.opened', context => {
+
   })
 
   // For more information on building apps:
