@@ -1,0 +1,45 @@
+kind: pipeline
+type: kubernetes
+name: default
+
+steps:
+  - name: install_dependencies
+    image: node:12
+    commands:
+      - npm ci
+  - name: test
+    image: node:12
+    commands:
+      - npm run test
+    depends_on: [install_dependencies]
+  - name: docker
+    image: banzaicloud/drone-kaniko
+    settings:
+      email: kedthunder@gmail.com
+      dockerfile: ./Dockerfile
+      registry: docker.pkg.github.com
+      repo: ked57/mspr-user-api/api
+      username:
+        from_secret: GITHUB_USERNAME
+      password:
+        from_secret: GITHUB_TOKEN
+      tags:
+        - ${DRONE_COMMIT_SHA:0:8}
+        - latest
+    depends_on: [test]
+    when:
+      event: tag
+  - name: deploy
+    image: pabloclsn/kubectl-docker:latest
+    commands:
+      - echo $KUBE_CONFIG > ~/.kube/config
+      - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
+      - kubectl rollout restart deployment/mspr-ci-user-api-deployment -n prod-mspr-ci 
+    environment:
+      DATABASE_URL:
+        from_secret: DATABASE_URL
+      KUBE_CONFIG:
+        from_secret: KUBE_CONFIG
+    depends_on: [docker]
+    when:
+      event: tag
