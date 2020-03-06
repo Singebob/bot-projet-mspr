@@ -1,3 +1,5 @@
+const { getProjectKanban, getColumn, getCard } = require('./src/projects/utils')
+
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
@@ -32,28 +34,19 @@ module.exports = app => {
   app.on('issues.opened', context => {
     const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
     context.github.issues.createComment(issueComment)
-    const owner = context.payload.repository.owner.login
-    const repo = context.payload.repository.name
-    context.github.projects.listForRepo({owner, repo, state: 'open'})
-    .then( res => {
-      const kanban = res.data.filter(project => project.name === 'kanban automatic')
-      if(kanban.length === 1){
-        context.github.projects.listColumns({project_id: kanban[0].id})
-        .then(resColumns => {
-          const columns = resColumns.data.filter(column => column.name === 'To do')
-          if(columns.length === 1){
-            context.github.projects.createCard({
-              column_id: columns[0].id,
-              content_type: 'Issue',
-              content_id: context.payload.issue.id
-            })
-          }
+    getProjectKanban(context)
+    .then(kanban => {
+      getColumn(context, kanban, 'To do')
+      .then(column => { 
+        context.github.projects.createCard({
+          column_id: column.id,
+          content_type: 'Issue',
+          content_id: context.payload.issue.id
         })
-      }
+      })
     }).catch(err => {
       app.log.error(err)
     })
-    return 0
   })
 
   app.on('issue_comment.created', context => {
@@ -80,10 +73,18 @@ module.exports = app => {
               const ref = `refs/heads/${branche.prefix}/${issueNumber}/${name}`
               context.github.git.createRef({owner, repo, ref, sha: masterSha})
             })
+            getProjectKanban(context)
+            .then(kanban => {
+              Promise.all([getColumn(context, kanban, 'In progress'), getCard(context, kanban, 'To do', issueNumber)])
+              .then(([column, card]) => {
+                context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
+              })
+            }).catch(err => {
+              app.log.error(err)
+            })
             return true
           }
         })
-        
       })
     }
   })
@@ -105,7 +106,7 @@ module.exports = app => {
       const check_run_id = resCheck.data.id
       if(title !== `[${arrayBranches[0].toUpperCase()}] ${arrayBranches[2]}`) {
         const conclusion = 'failure'
-        context.github.checks.update({owner, repo, check_run_id, conclusion, ouput})
+        context.github.checks.update({owner, repo, check_run_id, conclusion})
       }else {
         const conclusion = 'success'
         context.github.checks.update({owner, repo, check_run_id, conclusion})
@@ -114,7 +115,27 @@ module.exports = app => {
   })
 
   app.on('pull_request.opened', context => {
+    const branchName = context.payload.pull_request.head.ref
+    const firstSlash = branchName.indexOf('/')
+    const lastSlash = branchName.lastIndexOf('/')
+    const issueNumber = branchName.slice(firstSlash + 1, lastSlash)
 
+    const owner = context.payload.repository.owner.login
+    const repo = context.payload.repository.name
+    const pull_number = context.payload.pull_request.number
+    const body = `resolves #${issueNumber}`
+    context.github.pulls.update({owner, repo, pull_number, body})
+
+    getProjectKanban(context)
+    .then(kanban => {
+      Promise.all([getColumn(context, kanban, 'Review in progress'), getCard(context, kanban, 'In progress', issueNumber)])
+      .then(([column, card]) => {
+        context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
+      })
+      .catch(err => {
+        app.log.error(err)
+      })
+    })
   })
 
   // For more information on building apps:
