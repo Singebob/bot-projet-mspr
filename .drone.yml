@@ -18,13 +18,13 @@ steps:
       email: jeremy.chauvin@systeme-u.fr
       dockerfile: ./Dockerfile
       registry: docker.pkg.github.com
-      repo: SingeBob/bot-projet-mspr/api
+      repo: Singebob/bot-projet-mspr/api
       username:
         from_secret: GITHUB_USERNAME
       password:
         from_secret: GITHUB_TOKEN
       tags:
-        - ${DRONE_COMMIT_SHA:0:8}
+        - ${DRONE_TAG}
         - latest
     depends_on: [test]
   - name: deploy
