@@ -18,7 +18,7 @@ steps:
       email: jeremy.chauvin@systeme-u.fr
       dockerfile: ./Dockerfile
       registry: docker.pkg.github.com
-      repo: Singebob/bot-projet-mspr/api
+      repo: singebob/bot-projet-mspr/api
       username:
         from_secret: GITHUB_USERNAME
       password:
