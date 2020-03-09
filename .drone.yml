@@ -31,6 +31,7 @@ steps:
     image: pabloclsn/kubectl-docker:latest
     commands:
       - echo $KUBE_CONFIG > ~/.kube/config
+      - cat .kube/deployment.yaml | envsubst
       - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
       - kubectl rollout restart deployment/mspr-ci-bot-deployment -n prod-mspr-ci
     environment:
