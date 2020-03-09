@@ -12,27 +12,27 @@ steps:
     commands:
       - npm run test
     depends_on: [install_dependencies]
-  - name: docker
-    image: banzaicloud/drone-kaniko
-    settings:
-      email: jeremy.chauvin@systeme-u.fr
-      dockerfile: ./Dockerfile
-      registry: docker.pkg.github.com
-      repo: singebob/bot-projet-mspr/api
-      username:
-        from_secret: GITHUB_USERNAME
-      password:
-        from_secret: GITHUB_TOKEN
-      tags:
-        - ${DRONE_TAG}
-        - latest
-    depends_on: [test]
+  # - name: docker
+  #   image: banzaicloud/drone-kaniko
+  #   settings:
+  #     email: jeremy.chauvin@systeme-u.fr
+  #     dockerfile: ./Dockerfile
+  #     registry: docker.pkg.github.com
+  #     repo: singebob/bot-projet-mspr/api
+  #     username:
+  #       from_secret: GITHUB_USERNAME
+  #     password:
+  #       from_secret: GITHUB_TOKEN
+  #     tags:
+  #       - ${DRONE_TAG}
+  #       - latest
+  #   depends_on: [test]
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
     commands:
       - echo $KUBE_CONFIG > ~/.kube/config
       - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
-      - kubectl rollout restart deployment/mspr-ci-bot-deployment -n prod-mspr-ci 
+      - kubectl rollout restart deployment/mspr-ci-bot-deployment -n prod-mspr-ci
     environment:
       APP_ID:
         from_secret: APP_ID
@@ -44,4 +44,4 @@ steps:
         from_secret: WEBHOOK_PROXY_URL
       PRIVATE_KEY:
         from_secret: PRIVATE_KEY
-    depends_on: [docker]
+    # depends_on: [docker]
