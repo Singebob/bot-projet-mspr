@@ -30,8 +30,7 @@ steps:
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
     commands:
-      - echo $KUBE_KUBE_CONFIG
-      - echo $KUBE_CONFIG > ~/.kube/config
+      - echo $${KUBE_CONFIG} > ~/.kube/config
       - cat ~/.kube/config
       - cat .kube/deployment.yaml | envsubst
       - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
