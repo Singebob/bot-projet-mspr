@@ -27,6 +27,8 @@ steps:
         - ${DRONE_TAG}
         - latest
     depends_on: [test]
+    when:
+      event: tag
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
     commands:
@@ -47,3 +49,5 @@ steps:
       PRIVATE_KEY:
         from_secret: PRIVATE_KEY
     depends_on: [docker]
+    when:
+      event: tag
