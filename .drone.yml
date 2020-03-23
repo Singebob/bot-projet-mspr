@@ -28,7 +28,7 @@ steps:
         - latest
     depends_on: [test]
     when:
-      event: tag
+      branch: master
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
     commands:
@@ -50,4 +50,4 @@ steps:
         from_secret: PRIVATE_KEY
     depends_on: [docker]
     when:
-      event: tag
+      branch: master
