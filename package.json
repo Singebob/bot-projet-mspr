@@ -15,9 +15,9 @@
   ],
   "scripts": {
     "dev": "nodemon",
-    "start": "probot run ./index.js",
+    "start": "probot run ./src/index.js",
     "lint": "standard --fix",
-    "test": "jest && standard",
+    "test": "jest",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage"
   },
   "dependencies": {

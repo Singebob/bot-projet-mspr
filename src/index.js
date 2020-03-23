@@ -1,4 +1,4 @@
-const { getProjectKanban, getColumn, getCard } = require('./src/projects/utils')
+const { getProjectKanban, getColumn, getCard } = require('./projects/utils')
 
 /**
  * This is the main entrypoint to your Probot app
@@ -50,7 +50,7 @@ module.exports = app => {
   })
 
   app.on('issue_comment.created', context => {
-    if(context.payload.comment.body === '/cib'){
+    if (context.payload.comment.body === '/cib') {
       const owner = context.payload.repository.owner.login
       const repo = context.payload.repository.name
       const issueNumber = context.payload.issue.number
@@ -84,12 +84,25 @@ module.exports = app => {
             })
             return true
           }
+          branches.some(branche => {
+            const label = resLabels.data.find(label => label.name === branche.label)
+            if (label !== undefined) {
+              context.github.git.getRef({ owner, repo, ref: 'heads/master' })
+                .then(resMaster => {
+                  const masterSha = resMaster.data.object.sha
+                  const name = context.payload.issue.title.toLowerCase().replace(/\s+/g, '_')
+                  const ref = `refs/heads/${branche.prefix}/${issueNumber}/${name}`
+                  context.github.git.createRef({ owner, repo, ref, sha: masterSha })
+                })
+              return true
+            }
+          })
         })
       })
     }
   })
 
-  app.on(['pull_request.opened','pull_request.reopened', 'pull_request.edited'], context => {
+  app.on(['pull_request.opened', 'pull_request.reopened', 'pull_request.edited'], context => {
     const owner = context.payload.repository.owner.login
     const repo = context.payload.repository.name
     const head_sha = context.payload.pull_request.head.sha
