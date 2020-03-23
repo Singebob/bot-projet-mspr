@@ -138,9 +138,23 @@ module.exports = app => {
     })
   })
 
-  // For more information on building apps:
-  // https://probot.github.io/docs/
+  app.on('pull_request_review.submitted', context => {
+    app.log('pull_request_review', context.payload)
+    const branchName = context.payload.pull_request.head.ref
+    const firstSlash = branchName.indexOf('/')
+    const lastSlash = branchName.lastIndexOf('/')
+    const issueNumber = branchName.slice(firstSlash + 1, lastSlash)
 
-  // To get your app running against GitHub, see:
-  // https://probot.github.io/docs/development/
+    getProjectKanban(context)
+    .then(kanban => {
+      Promise.all([getColumn(context, kanban, 'Reviewer approved'), getCard(context, kanban, 'Review in progress', issueNumber)])
+      .then(([column, card]) => {
+        context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
+      })
+      .catch(err => {
+        app.log.error(err)
+      })
+    })
+  })
+
 }
