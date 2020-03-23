@@ -102,31 +102,6 @@ module.exports = app => {
     }
   })
 
-  app.on(['pull_request.opened', 'pull_request.reopened', 'pull_request.edited'], context => {
-    const owner = context.payload.repository.owner.login
-    const repo = context.payload.repository.name
-    const head_sha = context.payload.pull_request.head.sha
-    const name = 'Hudson check commit name'
-    const images = {
-      alt: 'Hudson image',
-      url: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2Fhudson&psig=AOvVaw2dCnaQ3MErqJJl47mEjoLI&ust=1583515079900000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCKC93sDrg-gCFQAAAAAdAAAAABAD'
-    }
-    const status = 'in_progress'
-    context.github.checks.create({owner,repo, head_sha, name, images, status})
-    .then(resCheck => {
-      const arrayBranches = context.payload.pull_request.head.ref.split('/')
-      const title = context.payload.pull_request.title
-      const check_run_id = resCheck.data.id
-      if(title !== `[${arrayBranches[0].toUpperCase()}] ${arrayBranches[2]}`) {
-        const conclusion = 'failure'
-        context.github.checks.update({owner, repo, check_run_id, conclusion})
-      }else {
-        const conclusion = 'success'
-        context.github.checks.update({owner, repo, check_run_id, conclusion})
-      }
-    })
-  })
-
   app.on('pull_request.opened', context => {
     const branchName = context.payload.pull_request.head.ref
     const firstSlash = branchName.indexOf('/')
