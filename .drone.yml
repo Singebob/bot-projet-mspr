@@ -16,9 +16,11 @@ steps:
     image: node:12
     commands:
       - npx gitmoji-changelog
-      - PACKAGE_VERSION = awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json
+      - PACKAGE_VERSION=$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json)
+      - git add .
       - git tag -a $PACKAGE_VERSION -m "$PACKAGE_VERSION"
       - git push origin $PACKAGE_VERSION
+    depends_on: [test]
     when:
       branch: master
       event: push
