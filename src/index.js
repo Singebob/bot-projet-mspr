@@ -1,4 +1,4 @@
-const { getProjectKanban, getColumn, getCard } = require('./src/projects/utils')
+const { getProjectKanban, getColumn, getCard } = require('./projects/utils')
 
 /**
  * This is the main entrypoint to your Probot app
