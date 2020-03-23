@@ -35,7 +35,6 @@ steps:
       - cat .kube/deployment.yaml | envsubst
       - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
       - kubectl rollout restart deployment/mspr-ci-bot-deployment -n prod-mspr-ci
-    secrets: [ kube_config]
     environment:
       APP_ID:
         from_secret: APP_ID
