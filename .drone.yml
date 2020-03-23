@@ -15,11 +15,16 @@ steps:
   - name: generate changelog
     image: node:12
     commands:
+      - npm i -g github-release-cli
       - npx gitmoji-changelog
+      - CHANGELOG=$(cat ./CHANGELOG.md)
       - PACKAGE_VERSION=$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json)
-      - git add .
-      - git tag -a $PACKAGE_VERSION -m "$PACKAGE_VERSION"
-      - git push origin $PACKAGE_VERSION
+      - github-release upload --token="$GITHUB_TOKEN" --owner=Singebob --repo=bot-projet-mspr --tag="$PACKAGE_VERSION" --name="$PACKAGE_VERSION" --body="$CHANGELOG"
+    environment:
+      GITHUB_TOKEN:
+        from_secret: GITHUB_TOKEN
+      GITHUB_USER:
+        from_secret: GITHUB_USERNAME
     depends_on: [test]
     when:
       branch: master
@@ -40,7 +45,6 @@ steps:
         - latest
     depends_on: [test]
     when:
-      branch: master
       event: tag
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
@@ -63,5 +67,4 @@ steps:
         from_secret: PRIVATE_KEY
     depends_on: [docker]
     when:
-      branch: master
       event: tag
