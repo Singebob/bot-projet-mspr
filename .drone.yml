@@ -29,6 +29,7 @@ steps:
     depends_on: [test]
     when:
       branch: master
+      event: push
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
     commands:
@@ -51,3 +52,4 @@ steps:
     depends_on: [docker]
     when:
       branch: master
+      event: push
