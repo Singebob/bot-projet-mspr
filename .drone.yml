@@ -18,7 +18,7 @@ steps:
       - npx gitmoji-changelog
       - PACKAGE_VERSION=$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json)
       - git add .
-      - git tag -a $PACKAGE_VERSION -m "$PACKAGE_VERSION"
+      - git tag -a $PACKAGE_VERSION -m "$(echo ./CHANGELO.MD)"
       - git push origin $PACKAGE_VERSION
     depends_on: [test]
     when:
@@ -40,7 +40,6 @@ steps:
         - latest
     depends_on: [test]
     when:
-      branch: master
       event: tag
   - name: deploy
     image: pabloclsn/kubectl-docker:latest
@@ -63,5 +62,4 @@ steps:
         from_secret: PRIVATE_KEY
     depends_on: [docker]
     when:
-      branch: master
       event: tag
