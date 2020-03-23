@@ -36,6 +36,8 @@ steps:
       - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
       - kubectl rollout restart deployment/mspr-ci-bot-deployment -n prod-mspr-ci
     environment:
+      KUBE_CONFIG:
+        from_secret: KUBE_CONFIG
       APP_ID:
         from_secret: APP_ID
       WEBHOOK_SECRET:
