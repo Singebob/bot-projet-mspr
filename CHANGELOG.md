@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Singebob/bot-projet-mspr/compare/v1.0.0...v1.0.1) (2020-03-24)
+
+
+### Bug Fixes
+
+* **change comment when create branch:** change comment to Thanks for taking this issue ([#16](https://github.com/Singebob/bot-projet-mspr/issues/16)) ([65d64b8](https://github.com/Singebob/bot-projet-mspr/commit/65d64b87cc92dcb4fbe0238fcd994855c1a8f2a7))
+
 # 1.0.0 (2020-03-24)
 
 
