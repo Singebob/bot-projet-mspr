@@ -93,7 +93,7 @@ module.exports = app => {
                   const name = context.payload.issue.title.toLowerCase().replace(/\s+/g, '_')
                   const ref = `refs/heads/${branche.prefix}/${issueNumber}/${name}`
                   context.github.git.createRef({ owner, repo, ref, sha: masterSha }).then(() => {
-                    const issueComment = context.issue({ body: "Thanks to take this issue! I created a branch"})
+                    const issueComment = context.issue({ body: "Thanks for taking this issue! I created a branch"})
                     context.github.issues.createComment(issueComment)
                   })
                 })
