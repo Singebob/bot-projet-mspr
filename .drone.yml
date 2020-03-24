@@ -16,10 +16,11 @@ steps:
     image: node:12
     commands:
       - npm i -g github-release-cli
-      - npx gitmoji-changelog
-      - CHANGELOG=$(cat ./CHANGELOG.md)
-      - PACKAGE_VERSION=$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json)
-      - github-release upload --token="$GITHUB_TOKEN" --owner=Singebob --repo=bot-projet-mspr --tag="$PACKAGE_VERSION" --name="$PACKAGE_VERSION" --body="$CHANGELOG"
+      - npx standard-version --bumpFile package.json
+      - git push --follow-tags origin master
+      # - CHANGELOG=$(cat ./CHANGELOG.md)
+      # - PACKAGE_VERSION=$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json)
+      # - github-release upload --token="$GITHUB_TOKEN" --owner=Singebob --repo=bot-projet-mspr --tag="$PACKAGE_VERSION" --name="$PACKAGE_VERSION" --body="$CHANGELOG"
     environment:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
