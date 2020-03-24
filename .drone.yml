@@ -15,7 +15,6 @@ steps:
   - name: generate changelog
     image: node:12
     commands:
-      - npm install
       - npx semantic-release
     environment:
       GITHUB_TOKEN:
