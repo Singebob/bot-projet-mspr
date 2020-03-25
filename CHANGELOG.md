@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Singebob/bot-projet-mspr/compare/v1.0.1...v1.1.0) (2020-03-25)
+
+
+### Features
+
+* **template:** add template feature ([3a9c095](https://github.com/Singebob/bot-projet-mspr/commit/3a9c0954f27f2bbfd8849751de952af490130a93))
+
 ## [1.0.1](https://github.com/Singebob/bot-projet-mspr/compare/v1.0.0...v1.0.1) (2020-03-24)
 
 
