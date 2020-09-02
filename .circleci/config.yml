@@ -33,6 +33,17 @@ jobs:
       - run:
           name: Test unitaire
           command: npm run test
+  app-deploy:
+    docker:
+      - image: circleci/node:12.16.0
+    steps:
+      - checkout
+      - run:
+          name: Install Captain Rover CLI
+          command: sudo npm install -g caprover
+      - deploy:
+          name: Deploy app to Captain Rover
+          command: caprover deploy -h $DOMAIN -p $PASSWORD -b master -a $APPNAME
 workflows:
   version: 2.1
   deploy:
@@ -41,3 +52,8 @@ workflows:
       - test_unitaire:
           requires:
             - install_dependencies
+      - app-deploy:
+          <<: *filter_branch_master
+          requires:
+            - test_unitaire
+          context: test-circleci-node
