@@ -1,0 +1,43 @@
+version: 2.1
+
+node_modules_cache: &node_modules_cache
+  restore_cache:
+    keys:
+      - dependencies-{{ checksum "package-lock.json" }}
+      - dependencies-
+filter_branch_master: &filter_branch_master
+  filters:
+    branches:
+      only: master
+
+jobs:
+  install_dependencies:
+    docker:
+      - image: circleci/node:12.16.0
+    steps:
+      - checkout
+      - *node_modules_cache
+      - run:
+          name: Download dependencies
+          command: npm install
+      - save_cache:
+          paths:
+            - ./node_modules
+          key: dependencies-{{ checksum "package-lock.json" }}
+  test_unitaire:
+    docker:
+      - image: circleci/node:12.16.0
+    steps:
+      - checkout
+      - *node_modules_cache
+      - run:
+          name: Test unitaire
+          command: npm run test
+workflows:
+  version: 2.1
+  deploy:
+    jobs:
+      - install_dependencies
+      - test_unitaire:
+          requires:
+            - install_dependencies
