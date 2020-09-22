@@ -9,7 +9,12 @@ steps:
   - name: test
     image: node:12
     commands:
-      - npm run test
+      - npm run test:coverage
+      - export COVERALLS_GIT_COMMIT=${DRONE_COMMIT_SHA}
+      - npm run test:coveralls
+    environment:
+      COVERALLS_REPO_TOKEN:
+        from_secret: coveralls_token
     depends_on: [install_dependencies]
   - name: generate changelog
     image: node:12
