@@ -41,24 +41,17 @@ steps:
     when:
       event: tag
   - name: deploy
-    image: pabloclsn/kubectl-docker:latest
+    image: node:12
     commands:
-      - echo $KUBE_CONFIG > ~/.kube/config
-      - cat .kube/deployment.yaml | envsubst | kubectl apply -f -
-      - kubectl rollout restart deployment/mspr-ci-bot-deployment -n prod-mspr-ci
+      - npm install -g caprover
+      - caprover deploy -h ${DOMAIN} -p ${PASSWORD} -b master -a ${APPNAME}
     environment:
-      KUBE_CONFIG:
-        from_secret: KUBE_CONFIG
-      APP_ID:
-        from_secret: APP_ID
-      WEBHOOK_SECRET:
-        from_secret: WEBHOOK_SECRET
-      LOG_LEVEL:
-        from_secret: LOG_LEVEL
-      WEBHOOK_PROXY_URL:
-        from_secret: WEBHOOK_PROXY_URL
-      PRIVATE_KEY:
-        from_secret: PRIVATE_KEY
+      DOMAIN:
+        from_secret: DOMAIN
+      PASSWORD:
+        from_secret: PASSWORD
+      APPNAME:
+        from_secret: APPNAME
     depends_on: [docker]
     when:
       event: tag
