@@ -1,5 +1,5 @@
-const { getProjectKanban, getColumn, getCard } = require('./projects/utils')
-
+const { getProjectKanban, getColumn, getCard } = require('./projects/kanban')
+const issue_utils = require('./projects/utils/issues')
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
@@ -31,22 +31,13 @@ module.exports = app => {
     }
   ]
 
-  app.on('issues.opened', context => {
-    const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
-    context.github.issues.createComment(issueComment)
-    getProjectKanban(context)
-    .then(kanban => {
-      getColumn(context, kanban, 'To do')
-      .then(column => { 
-        context.github.projects.createCard({
-          column_id: column.id,
-          content_type: 'Issue',
-          content_id: context.payload.issue.id
-        })
-      })
-    }).catch(err => {
-      app.log.error(err)
-    })
+  app.on('issues.opened', async (context) => {
+    try {
+      await issue_utils.addCommentToIssue(context, 'Thanks for opening this issue!')
+      await issue_utils.registerIssueToKanban(context)
+    } catch (error) {
+      console.error(error)
+    }
   })
 
   app.on('issue_comment.created', context => {

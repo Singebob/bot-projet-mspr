@@ -7,6 +7,10 @@ const payload = require('./fixtures/issues.opened')
 const issueCreatedBody = { body: 'Thanks for opening this issue!' }
 const fs = require('fs')
 const path = require('path')
+const utils = require('../src/projects/kanban')
+const issue_utils = require('../src/projects/utils/issues')
+const { resolve } = require('path')
+
 
 describe('My Probot app', () => {
   let probot
@@ -21,28 +25,39 @@ describe('My Probot app', () => {
   })
 
   beforeEach(() => {
+    jest.clearAllMocks();
     nock.disableNetConnect()
     probot = new Probot({ id: 123, cert: mockCert })
     // Load our app into probot
     probot.load(myProbotApp)
   })
+  describe('When issue is opened', () => {
 
-  test('creates a comment when an issue is opened', async () => {
-    // Test that we correctly return a test token
-    nock('https://api.github.com')
-      .post('/app/installations/2/access_tokens')
-      .reply(200, { token: 'test' })
+    test('creates a comment when an issue is opened', async () => {
+      issue_utils.addCommentToIssue = jest.fn()
+      issue_utils.registerIssueToKanban = jest.fn()
+      // Receive a webhook event
+      await probot.receive({ name: 'issues', payload })
+      expect(issue_utils.addCommentToIssue).toHaveBeenCalled();
+      expect(issue_utils.registerIssueToKanban).toHaveBeenCalled();
+    })
 
-    // Test that a comment is posted
-    nock('https://api.github.com')
-      .post('/repos/hiimbex/testing-things/issues/1/comments', (body) => {
-        expect(body).toMatchObject(issueCreatedBody)
-        return true
-      })
-      .reply(200)
+    test('when add comment throw error register is not call', async () => {
+      issue_utils.addCommentToIssue = jest.fn(() => {throw Error('test')})
+      issue_utils.registerIssueToKanban = jest.fn()
+      await probot.receive({name: 'issues', payload})
+      expect(issue_utils.addCommentToIssue).toThrowError()
+      expect(issue_utils.registerIssueToKanban).not.toHaveBeenCalled()
+    })
 
-    // Receive a webhook event
-    await probot.receive({ name: 'issues', payload })
+    test('when register issue to kanban throw error check add comment is call', async () => {
+      issue_utils.addCommentToIssue = jest.fn()
+      issue_utils.registerIssueToKanban = jest.fn(() => {throw Error('test')})
+      await probot.receive({name: 'issues', payload})
+      expect(issue_utils.addCommentToIssue).toHaveBeenCalled()
+      expect(issue_utils.registerIssueToKanban).toThrowError()
+    })
+
   })
 
   afterEach(() => {
@@ -50,9 +65,3 @@ describe('My Probot app', () => {
     nock.enableNetConnect()
   })
 })
-
-// For more information about testing with Jest see:
-// https://facebook.github.io/jest/
-
-// For more information about testing with Nock see:
-// https://github.com/nock/nock
