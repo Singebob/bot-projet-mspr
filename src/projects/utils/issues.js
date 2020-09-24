@@ -22,9 +22,15 @@ const addCommentToIssue = async (context, comment) => {
   }
 }
 
-
+const assigneUser = async (context, username) => {
+  const owner = context.payload.repository.owner.login
+  const repo = context.payload.repository.name
+  const issueNumber = context.payload.issue.number
+  await context.github.issues.addAssignees({owner, repo, issue_number: issueNumber, assignees: username})
+}
 
 module.exports = {
   registerIssueToKanban,
   addCommentToIssue,
+  assigneUser,
 }

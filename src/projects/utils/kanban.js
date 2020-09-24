@@ -56,5 +56,6 @@ const moveCard = async (context, fromColumn, targetColumn, issueNumber) => {
 module.exports = {
     getProjectKanban,
     getColumn,
-    getCard
+    getCard,
+    moveCard,
 }

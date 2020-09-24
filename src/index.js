@@ -3,6 +3,7 @@ const issueUtils = require('./projects/utils/issues')
 const labelUtils = require('./projects/utils/label')
 const branchUtils = require('./projects/utils/branche')
 const kanban = require('./projects/utils/kanban')
+const commentUtils = require('./projects/utils/comment')
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
@@ -22,11 +23,8 @@ module.exports = app => {
   })
 
   app.on('issue_comment.created', async (context) => {
-    if (context.payload.comment.body === '/cib') {
-      const owner = context.payload.repository.owner.login
-      const repo = context.payload.repository.name
-      const issueNumber = context.payload.issue.number
-      await context.github.issues.addAssignees({owner, repo, issue_number: issueNumber, assignees})
+    if (commentUtils.checkContentCib(context.payload.comment.body)) {
+      await issueUtils.assigneUser(context, context.payload.comment.user.login)      
       const labelsOnIssue = labelUtils.listLabelOnIssue(context)
       if(labelsOnIssue < 1) {
         issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
@@ -34,7 +32,7 @@ module.exports = app => {
       }
       const prefixBrancName = await branchUtils.findBrancheName(context, labelsOnIssue)
       await branchUtils.createBranch(context, prefixBrancName)
-      await kanban.moveCard(context, 'To do', 'In progress', issueNumber)
+      await kanban.moveCard(context, 'To do', 'In progress', context.payload.issue.number)
       await issueUtils.addCommentToIssue(context, 'Thanks for taking this issue! I created a branch')
     }
   })
