@@ -7,8 +7,8 @@ const payload = require('./fixtures/issues.opened')
 const issueCreatedBody = { body: 'Thanks for opening this issue!' }
 const fs = require('fs')
 const path = require('path')
-const utils = require('../src/projects/kanban')
-const issue_utils = require('../src/projects/utils/issues')
+const utils = require('../src/projects/utils/kanban')
+const issueUtils = require('../src/projects/utils/issues')
 const { resolve } = require('path')
 
 
@@ -34,28 +34,28 @@ describe('My Probot app', () => {
   describe('When issue is opened', () => {
 
     test('creates a comment when an issue is opened', async () => {
-      issue_utils.addCommentToIssue = jest.fn()
-      issue_utils.registerIssueToKanban = jest.fn()
+      issueUtils.addCommentToIssue = jest.fn()
+      issueUtils.registerIssueToKanban = jest.fn()
       // Receive a webhook event
       await probot.receive({ name: 'issues', payload })
-      expect(issue_utils.addCommentToIssue).toHaveBeenCalled();
-      expect(issue_utils.registerIssueToKanban).toHaveBeenCalled();
+      expect(issueUtils.addCommentToIssue).toHaveBeenCalled();
+      expect(issueUtils.registerIssueToKanban).toHaveBeenCalled();
     })
 
     test('when add comment throw error register is not call', async () => {
-      issue_utils.addCommentToIssue = jest.fn(() => {throw Error('test')})
-      issue_utils.registerIssueToKanban = jest.fn()
+      issueUtils.addCommentToIssue = jest.fn(() => {throw Error('test')})
+      issueUtils.registerIssueToKanban = jest.fn()
       await probot.receive({name: 'issues', payload})
-      expect(issue_utils.addCommentToIssue).toThrowError()
-      expect(issue_utils.registerIssueToKanban).not.toHaveBeenCalled()
+      expect(issueUtils.addCommentToIssue).toThrowError()
+      expect(issueUtils.registerIssueToKanban).not.toHaveBeenCalled()
     })
 
     test('when register issue to kanban throw error check add comment is call', async () => {
-      issue_utils.addCommentToIssue = jest.fn()
-      issue_utils.registerIssueToKanban = jest.fn(() => {throw Error('test')})
+      issueUtils.addCommentToIssue = jest.fn()
+      issueUtils.registerIssueToKanban = jest.fn(() => {throw Error('test')})
       await probot.receive({name: 'issues', payload})
-      expect(issue_utils.addCommentToIssue).toHaveBeenCalled()
-      expect(issue_utils.registerIssueToKanban).toThrowError()
+      expect(issueUtils.addCommentToIssue).toHaveBeenCalled()
+      expect(issueUtils.registerIssueToKanban).toThrowError()
     })
 
   })

@@ -46,6 +46,13 @@ const getCard = (context, project, columnName, issueNumber) => {
     })
 }
 
+const moveCard = async (context, fromColumn, targetColumn, issueNumber) => {
+    const project = await getProjectKanban(context)
+    const column = await getColumn(context, project, targetColumn)
+    const card = await getCard(context, project, fromColumn, issueNumber)
+    await context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
+}
+
 module.exports = {
     getProjectKanban,
     getColumn,

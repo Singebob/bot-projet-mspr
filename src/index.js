@@ -1,5 +1,8 @@
-const { getProjectKanban, getColumn, getCard } = require('./projects/kanban')
-const issue_utils = require('./projects/utils/issues')
+const { getProjectKanban, getColumn, getCard } = require('./projects/utils/kanban')
+const issueUtils = require('./projects/utils/issues')
+const labelUtils = require('./projects/utils/label')
+const branchUtils = require('./projects/utils/branche')
+const kanban = require('./projects/utils/kanban')
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
@@ -8,91 +11,31 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
-  const branches = [
-    {
-      label: 'breakingchange',
-      prefix: 'breakingchange'
-    },
-    {
-      label: 'enhancement',
-      prefix: 'feature'
-    },
-    {
-      label: 'bug',
-      prefix: 'fix'
-    },
-    {
-      label: 'ci',
-      prefix: 'ci'
-    },
-    {
-      label: 'documentation',
-      prefix: 'doc'
-    }
-  ]
 
   app.on('issues.opened', async (context) => {
     try {
-      await issue_utils.addCommentToIssue(context, 'Thanks for opening this issue!')
-      await issue_utils.registerIssueToKanban(context)
+      await issueUtils.addCommentToIssue(context, 'Thanks for opening this issue!')
+      await issueUtils.registerIssueToKanban(context)
     } catch (error) {
       console.error(error)
     }
   })
 
-  app.on('issue_comment.created', context => {
+  app.on('issue_comment.created', async (context) => {
     if (context.payload.comment.body === '/cib') {
       const owner = context.payload.repository.owner.login
       const repo = context.payload.repository.name
       const issueNumber = context.payload.issue.number
-      const assignees = context.payload.comment.user.login
-      context.github.issues.addAssignees({owner, repo, issue_number: issueNumber, assignees})
-      context.github.issues.listLabelsOnIssue({owner, repo, issue_number: issueNumber})
-      .then(resLabels => {
-        if(resLabels.data.length < 1){
-          const issueComment = context.issue({ body: " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ "})
-          context.github.issues.createComment(issueComment)
-          return 0
-        }
-        branches.some(branche => {
-          const label = resLabels.data.find(label => label.name === branche.label)
-          if(label !== undefined){
-            context.github.git.getRef({owner, repo, ref: 'heads/master'})
-            .then(resMaster => {
-              const masterSha = resMaster.data.object.sha
-              const name = context.payload.issue.title.toLowerCase().replace(/\s+/g,'_')
-              const ref = `refs/heads/${branche.prefix}/${issueNumber}/${name}`
-              context.github.git.createRef({owner, repo, ref, sha: masterSha})
-            })
-            getProjectKanban(context)
-            .then(kanban => {
-              Promise.all([getColumn(context, kanban, 'In progress'), getCard(context, kanban, 'To do', issueNumber)])
-              .then(([column, card]) => {
-                context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
-              })
-            }).catch(err => {
-              app.log.error(err)
-            })
-            return true
-          }
-          branches.some(branche => {
-            const label = resLabels.data.find(label => label.name === branche.label)
-            if (label !== undefined) {
-              context.github.git.getRef({ owner, repo, ref: 'heads/master' })
-                .then(resMaster => {
-                  const masterSha = resMaster.data.object.sha
-                  const name = context.payload.issue.title.toLowerCase().replace(/\s+/g, '_')
-                  const ref = `refs/heads/${branche.prefix}/${issueNumber}/${name}`
-                  context.github.git.createRef({ owner, repo, ref, sha: masterSha }).then(() => {
-                    const issueComment = context.issue({ body: "Thanks for taking this issue! I created a branch"})
-                    context.github.issues.createComment(issueComment)
-                  })
-                })
-              return true
-            }
-          })
-        })
-      })
+      await context.github.issues.addAssignees({owner, repo, issue_number: issueNumber, assignees})
+      const labelsOnIssue = labelUtils.listLabelOnIssue(context)
+      if(labelsOnIssue < 1) {
+        issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
+        return 0
+      }
+      const prefixBrancName = await branchUtils.findBrancheName(context, labelsOnIssue)
+      await branchUtils.createBranch(context, prefixBrancName)
+      await kanban.moveCard(context, 'To do', 'In progress', issueNumber)
+      await issueUtils.addCommentToIssue(context, 'Thanks for taking this issue! I created a branch')
     }
   })
 

@@ -1,4 +1,4 @@
-const { getProjectKanban, getColumn } = require('../kanban')
+const { getProjectKanban, getColumn } = require('./kanban')
 
 const registerIssueToKanban =  async (context) => {
   try {
@@ -21,6 +21,8 @@ const addCommentToIssue = async (context, comment) => {
     throw error
   }
 }
+
+
 
 module.exports = {
   registerIssueToKanban,
