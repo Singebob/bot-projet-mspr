@@ -23,17 +23,21 @@ module.exports = app => {
   })
 
   app.on('issue_comment.created', async (context) => {
-    if (commentUtils.checkContentCib(context.payload.comment.body)) {
-      await issueUtils.assigneUser(context, context.payload.comment.user.login)      
-      const labelsOnIssue = labelUtils.listLabelOnIssue(context)
-      if(labelsOnIssue < 1) {
-        issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
-        return 0
+    try {
+      if (commentUtils.checkContentCib(context.payload.comment.body)) {
+        await issueUtils.assigneUser(context, context.payload.comment.user.login)      
+        const labelsOnIssue = labelUtils.listLabelOnIssue(context)
+        if(labelsOnIssue < 1) {
+          issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
+          return 0
+        }
+        const prefixBrancName = await branchUtils.findBrancheName(context, labelsOnIssue)
+        await branchUtils.createBranch(context, prefixBrancName)
+        await kanban.moveCard(context, 'To do', 'In progress', context.payload.issue.number)
+        await issueUtils.addCommentToIssue(context, 'Thanks for taking this issue! I created a branch')
       }
-      const prefixBrancName = await branchUtils.findBrancheName(context, labelsOnIssue)
-      await branchUtils.createBranch(context, prefixBrancName)
-      await kanban.moveCard(context, 'To do', 'In progress', context.payload.issue.number)
-      await issueUtils.addCommentToIssue(context, 'Thanks for taking this issue! I created a branch')
+    } catch (error) {
+      console.log(error)
     }
   })
 
