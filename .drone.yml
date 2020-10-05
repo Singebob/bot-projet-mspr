@@ -48,7 +48,7 @@ steps:
     image: node:12
     commands:
       - npm install -g caprover
-      - caprover deploy -h ${DOMAIN} -p ${PASSWORD} -b master -a ${APPNAME}
+      - caprover deploy -h $DOMAIN -p $PASSWORD -b master -a $APPNAME
     environment:
       DOMAIN:
         from_secret: DOMAIN

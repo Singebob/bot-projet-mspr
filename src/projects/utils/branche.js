@@ -29,7 +29,7 @@ const findBrancheName = (label) => {
 const createBranch = async (context, prefix) => {
   const owner = context.payload.repository.owner.login
   const repo = context.payload.repository.name
-  const resMaster = await context.github.git.getRef({owner, repo, ref: 'heads/main'})
+  const resMaster = await context.github.git.getRef({owner, repo, ref: 'heads/develop'})
   const masterSha = resMaster.data.object.sha
   const name = context.payload.issue.title.toLowerCase().replace(/\s+/g,'_')
   const ref = `refs/heads/${prefix}/${context.payload.issue.number}/${name}`
