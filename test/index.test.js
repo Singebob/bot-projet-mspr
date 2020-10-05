@@ -3,10 +3,18 @@ const nock = require('nock')
 const myProbotApp = require('../src')
 const { Probot } = require('probot')
 // Requiring our fixtures
-const payload = require('./fixtures/issues.opened')
-const issueCreatedBody = { body: 'Thanks for opening this issue!' }
+const payloadIssueOpen = require('./fixtures/issues.opened')
+const payloadCommentOpen = require('./fixtures/comment.opened')
+const payloadPullRequestOpen = require('./fixtures/pullRequest.opened')
 const fs = require('fs')
 const path = require('path')
+const issueUtils = require('../src/projects/utils/issues')
+const commentUtils = require('../src/projects/utils/comment')
+const labelUtils = require('../src/projects/utils/label')
+const branchUtils = require('../src/projects/utils/branche')
+const pullRequestUtils = require('../src/projects/utils/pullRequest')
+const kanban = require('../src/projects/utils/kanban')
+
 
 describe('My Probot app', () => {
   let probot
@@ -21,28 +29,140 @@ describe('My Probot app', () => {
   })
 
   beforeEach(() => {
+    jest.clearAllMocks();
     nock.disableNetConnect()
     probot = new Probot({ id: 123, cert: mockCert })
     // Load our app into probot
     probot.load(myProbotApp)
   })
 
-  test('creates a comment when an issue is opened', async () => {
-    // Test that we correctly return a test token
-    nock('https://api.github.com')
-      .post('/app/installations/2/access_tokens')
-      .reply(200, { token: 'test' })
+  describe('When issue is opened', () => {
 
-    // Test that a comment is posted
-    nock('https://api.github.com')
-      .post('/repos/hiimbex/testing-things/issues/1/comments', (body) => {
-        expect(body).toMatchObject(issueCreatedBody)
-        return true
-      })
-      .reply(200)
+    test('creates a comment when an issue is opened', async () => {
+      issueUtils.addCommentToIssue = jest.fn()
+      issueUtils.registerIssueToKanban = jest.fn()
+      // Receive a webhook event
+      await probot.receive({ name: 'issues', payload: payloadIssueOpen })
+      expect(issueUtils.addCommentToIssue).toHaveBeenCalled();
+      expect(issueUtils.registerIssueToKanban).toHaveBeenCalled();
+    })
 
-    // Receive a webhook event
-    await probot.receive({ name: 'issues', payload })
+    test('when add comment throw error register is not call', async () => {
+      issueUtils.addCommentToIssue = jest.fn(() => {throw Error('test')})
+      issueUtils.registerIssueToKanban = jest.fn()
+      await probot.receive({name: 'issues', payload: payloadIssueOpen})
+      expect(issueUtils.addCommentToIssue).toThrowError()
+      expect(issueUtils.registerIssueToKanban).not.toHaveBeenCalled()
+    })
+
+    test('when register issue to kanban throw error check add comment is call', async () => {
+      issueUtils.addCommentToIssue = jest.fn()
+      issueUtils.registerIssueToKanban = jest.fn(() => {throw Error('test')})
+      await probot.receive({name: 'issues', payload: payloadIssueOpen})
+      expect(issueUtils.addCommentToIssue).toHaveBeenCalled()
+      expect(issueUtils.registerIssueToKanban).toThrowError()
+    })
+
+  })
+
+  describe('When comment is add on issue', () => {
+    test('when comment content cib', async () => {
+      commentUtils.checkContentCib = jest.fn(() => true)
+      issueUtils.assigneUser = jest.fn()
+      labelUtils.listLabelOnIssue = jest.fn(() => ['1'])
+      branchUtils.findBrancheName = jest.fn()
+      branchUtils.createBranch = jest.fn()
+      kanban.moveCard = jest.fn()
+      issueUtils.addCommentToIssue = jest.fn()
+      await probot.receive({name: 'issue_comment', payload: payloadCommentOpen})
+      expect(issueUtils.assigneUser).toHaveBeenCalled()
+      expect(labelUtils.listLabelOnIssue).toHaveBeenCalled()
+      expect(branchUtils.findBrancheName).toHaveBeenCalled()
+      expect(branchUtils.createBranch).toHaveBeenCalled()
+      expect(kanban.moveCard).toHaveBeenCalled()
+      expect(issueUtils.addCommentToIssue).toHaveBeenCalled()
+    })
+
+    test('when comment no content cib', async () => {
+      commentUtils.checkContentCib = jest.fn(() => false)
+      issueUtils.assigneUser = jest.fn()
+      labelUtils.listLabelOnIssue = jest.fn(() => ['1'])
+      branchUtils.findBrancheName = jest.fn()
+      branchUtils.createBranch = jest.fn()
+      kanban.moveCard = jest.fn()
+      issueUtils.addCommentToIssue = jest.fn()
+      await probot.receive({name: 'issue_comment', payload: payloadCommentOpen})
+      expect(issueUtils.assigneUser).not.toHaveBeenCalled()
+      expect(labelUtils.listLabelOnIssue).not.toHaveBeenCalled()
+      expect(branchUtils.findBrancheName).not.toHaveBeenCalled()
+      expect(branchUtils.createBranch).not.toHaveBeenCalled()
+      expect(kanban.moveCard).not.toHaveBeenCalled()
+      expect(issueUtils.addCommentToIssue).not.toHaveBeenCalled()
+    })
+
+    test('when assigne user throw don\'t create branche', async () => {
+      issueUtils.assigneUser = jest.fn(() => {throw Error('error')})
+      commentUtils.checkContentCib = jest.fn(() => true)
+      labelUtils.listLabelOnIssue = jest.fn(() => ['1'])
+      branchUtils.findBrancheName = jest.fn()
+      branchUtils.createBranch = jest.fn()
+      kanban.moveCard = jest.fn()
+      await probot.receive({name: 'issue_comment', payload: payloadCommentOpen})
+      expect(issueUtils.assigneUser).toHaveBeenCalled()
+      expect(labelUtils.listLabelOnIssue).not.toHaveBeenCalled()
+      expect(branchUtils.findBrancheName).not.toHaveBeenCalled()
+      expect(branchUtils.createBranch).not.toHaveBeenCalled()
+      expect(kanban.moveCard).not.toHaveBeenCalled()
+      expect(issueUtils.addCommentToIssue).not.toHaveBeenCalled()
+    })
+
+    test('when issue don\'t have label don\t create branche', async () => {
+      commentUtils.checkContentCib = jest.fn(() => true)
+      issueUtils.assigneUser = jest.fn()
+      labelUtils.listLabelOnIssue = jest.fn(() => [])
+      branchUtils.findBrancheName = jest.fn()
+      branchUtils.createBranch = jest.fn()
+      kanban.moveCard = jest.fn()
+      issueUtils.addCommentToIssue = jest.fn()
+      await probot.receive({name: 'issue_comment', payload: payloadCommentOpen})
+      expect(issueUtils.assigneUser).toHaveBeenCalled()
+      expect(labelUtils.listLabelOnIssue).toHaveBeenCalled()
+      expect(branchUtils.findBrancheName).not.toHaveBeenCalled()
+      expect(branchUtils.createBranch).not.toHaveBeenCalled()
+      expect(kanban.moveCard).not.toHaveBeenCalled()
+      expect(issueUtils.addCommentToIssue).toHaveBeenCalled()
+    })
+
+  })
+
+  describe('when pull request is opened', () => {
+    test('everything is ok', async () => {
+      kanban.moveCard = jest.fn()
+      branchUtils.getIssueNumberFromBrancheName = jest.fn()
+      pullRequestUtils.linkPullRequestWithIssue = jest.fn()
+      await probot.receive({name: 'pull_request', payload: payloadPullRequestOpen})
+      expect(pullRequestUtils.linkPullRequestWithIssue).toHaveBeenCalled()
+      expect(branchUtils.getIssueNumberFromBrancheName).toHaveBeenCalled()
+      expect(kanban.moveCard).toHaveBeenCalled()
+    })
+    test('link pr with issue crash', async () => {
+      pullRequestUtils.linkPullRequestWithIssue = jest.fn(() => {throw Error('error')})
+      branchUtils.getIssueNumberFromBrancheName = jest.fn()
+      kanban.moveCard = jest.fn()
+      await probot.receive({name: 'pull_request', payload: payloadPullRequestOpen})
+      expect(pullRequestUtils.linkPullRequestWithIssue).toHaveBeenCalled()
+      expect(branchUtils.getIssueNumberFromBrancheName).not.toHaveBeenCalled()
+      expect(kanban.moveCard).not.toHaveBeenCalled()
+    })
+    test('move card crash', async () => {
+      pullRequestUtils.linkPullRequestWithIssue = jest.fn()
+      branchUtils.getIssueNumberFromBrancheName = jest.fn()
+      kanban.moveCard = jest.fn(() => {throw Error('error')})
+      await probot.receive({name: 'pull_request', payload: payloadPullRequestOpen})
+      expect(pullRequestUtils.linkPullRequestWithIssue).toHaveBeenCalled()
+      expect(branchUtils.getIssueNumberFromBrancheName).toHaveBeenCalled()
+      expect(kanban.moveCard).toHaveBeenCalled()
+    })
   })
 
   afterEach(() => {
@@ -50,9 +170,3 @@ describe('My Probot app', () => {
     nock.enableNetConnect()
   })
 })
-
-// For more information about testing with Jest see:
-// https://facebook.github.io/jest/
-
-// For more information about testing with Nock see:
-// https://github.com/nock/nock

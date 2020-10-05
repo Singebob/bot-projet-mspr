@@ -18,6 +18,8 @@
     "start": "probot run ./src/index.js",
     "lint": "standard --fix",
     "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:coveralls": "coveralls < coverage/lcov.info",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage"
   },
   "dependencies": {
@@ -30,6 +32,7 @@
     "@semantic-release/github": "^7.0.5",
     "@semantic-release/npm": "^7.0.5",
     "@semantic-release/release-notes-generator": "^9.0.1",
+    "coveralls": "^3.1.0",
     "jest": "^24.9.0",
     "nock": "^12.0.0",
     "nodemon": "^2.0.0",
