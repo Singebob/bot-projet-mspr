@@ -32,7 +32,7 @@ module.exports = app => {
           issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
           return 0
         }
-        const prefixBrancName = await branchUtils.findBrancheName(context, labelsOnIssue)
+        const prefixBrancName = await branchUtils.findBrancheName(labelsOnIssue)
         await branchUtils.createBranch(context, prefixBrancName)
         await kanban.moveCard(context, 'To do', 'In progress', context.payload.issue.number)
         await issueUtils.addCommentToIssue(context, 'Thanks for taking this issue! I created a branch')
