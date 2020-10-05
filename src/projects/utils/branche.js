@@ -30,7 +30,7 @@ const createBranch = async (context, prefix) => {
   const owner = context.payload.repository.owner.login
   const repo = context.payload.repository.name
   const defaultBranch = context.payload.repository.default_branch
-  const resMaster = await context.github.git.getRef({owner, repo, ref: defaultBranch})
+  const resMaster = await context.github.git.getRef({owner, repo, ref: `heads/${defaultBranch}`})
   const masterSha = resMaster.data.object.sha
   const name = context.payload.issue.title.toLowerCase().replace(/\s+/g,'_')
   const ref = `refs/heads/${prefix}/${context.payload.issue.number}/${name}`
