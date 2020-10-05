@@ -22,15 +22,17 @@ const branches = [
 ]
 
 const findBrancheName = (label) => {
-  const branchesName = branches.find(branche => branche.label == label.name)
-  return branchesName[0].prefix
+  const branchesName = branches.find(branche => branche.label == label.data[0].name)
+  return branchesName.prefix
 }
 
 const createBranch = async (context, prefix) => {
-  await context.github.git.getRef({owner, repo, ref: 'heads/master'})
+  const owner = context.payload.repository.owner.login
+  const repo = context.payload.repository.name
+  const resMaster = await context.github.git.getRef({owner, repo, ref: 'heads/main'})
   const masterSha = resMaster.data.object.sha
   const name = context.payload.issue.title.toLowerCase().replace(/\s+/g,'_')
-  const ref = `refs/heads/${prefix}/${issueNumber}/${name}`
+  const ref = `refs/heads/${prefix}/${context.payload.issue.number}/${name}`
   await context.github.git.createRef({owner, repo, ref, sha: masterSha})
 }
 

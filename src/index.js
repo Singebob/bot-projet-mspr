@@ -27,7 +27,7 @@ module.exports = app => {
     try {
       if (commentUtils.checkContentCib(context.payload.comment.body)) {
         await issueUtils.assigneUser(context, context.payload.comment.user.login)      
-        const labelsOnIssue = labelUtils.listLabelOnIssue(context)
+        const labelsOnIssue = await labelUtils.listLabelOnIssue(context)
         if(labelsOnIssue < 1) {
           issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
           return 0
