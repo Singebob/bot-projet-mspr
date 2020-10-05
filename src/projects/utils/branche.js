@@ -34,7 +34,14 @@ const createBranch = async (context, prefix) => {
   await context.github.git.createRef({owner, repo, ref, sha: masterSha})
 }
 
+const getIssueNumberFromBrancheName =(branchName) => {
+  const firstSlash = branchName.indexOf('/')
+  const lastSlash = branchName.lastIndexOf('/')
+  return branchName.slice(firstSlash + 1, lastSlash)
+}
+
 module.exports = {
   findBrancheName,
   createBranch,
+  getIssueNumberFromBrancheName,
 }

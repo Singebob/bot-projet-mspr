@@ -4,6 +4,7 @@ const labelUtils = require('./projects/utils/label')
 const branchUtils = require('./projects/utils/branche')
 const kanban = require('./projects/utils/kanban')
 const commentUtils = require('./projects/utils/comment')
+const pullRequestUtils = require('./projects/utils/pullRequest')
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
@@ -41,47 +42,13 @@ module.exports = app => {
     }
   })
 
-  app.on('pull_request.opened', context => {
-    const branchName = context.payload.pull_request.head.ref
-    const firstSlash = branchName.indexOf('/')
-    const lastSlash = branchName.lastIndexOf('/')
-    const issueNumber = branchName.slice(firstSlash + 1, lastSlash)
-
-    const owner = context.payload.repository.owner.login
-    const repo = context.payload.repository.name
-    const pull_number = context.payload.pull_request.number
-    const body = `resolves #${issueNumber}`
-    context.github.pulls.update({owner, repo, pull_number, body})
-
-    getProjectKanban(context)
-    .then(kanban => {
-      Promise.all([getColumn(context, kanban, 'Review in progress'), getCard(context, kanban, 'In progress', issueNumber)])
-      .then(([column, card]) => {
-        context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
-      })
-      .catch(err => {
-        app.log.error(err)
-      })
-    })
+  app.on('pull_request.opened', async (context) => {
+    try {
+      await pullRequestUtils.linkPullRequestWithIssue(context)
+      const issueNumber = await branchUtils.getIssueNumberFromBrancheName(context.payload.pull_request.head.ref)
+      await kanban.moveCard(context, 'In progress', 'Review in progress', issueNumber)
+    } catch (error) {
+      console.error(error)
+    }
   })
-
-  app.on('pull_request_review.submitted', context => {
-    app.log('pull_request_review', context.payload)
-    const branchName = context.payload.pull_request.head.ref
-    const firstSlash = branchName.indexOf('/')
-    const lastSlash = branchName.lastIndexOf('/')
-    const issueNumber = branchName.slice(firstSlash + 1, lastSlash)
-
-    getProjectKanban(context)
-    .then(kanban => {
-      Promise.all([getColumn(context, kanban, 'Reviewer approved'), getCard(context, kanban, 'Review in progress', issueNumber)])
-      .then(([column, card]) => {
-        context.github.projects.moveCard({position: 'top', column_id: column.id, card_id: card.id})
-      })
-      .catch(err => {
-        app.log.error(err)
-      })
-    })
-  })
-
 }

@@ -5,16 +5,15 @@ const { Probot } = require('probot')
 // Requiring our fixtures
 const payloadIssueOpen = require('./fixtures/issues.opened')
 const payloadCommentOpen = require('./fixtures/comment.opened')
+const payloadPullRequestOpen = require('./fixtures/pullRequest.opened')
 const fs = require('fs')
 const path = require('path')
-const utils = require('../src/projects/utils/kanban')
 const issueUtils = require('../src/projects/utils/issues')
 const commentUtils = require('../src/projects/utils/comment')
 const labelUtils = require('../src/projects/utils/label')
 const branchUtils = require('../src/projects/utils/branche')
-const { resolve } = require('path')
+const pullRequestUtils = require('../src/projects/utils/pullRequest')
 const kanban = require('../src/projects/utils/kanban')
-const { findBrancheName } = require('../src/projects/utils/branche')
 
 
 describe('My Probot app', () => {
@@ -134,6 +133,36 @@ describe('My Probot app', () => {
       expect(issueUtils.addCommentToIssue).toHaveBeenCalled()
     })
 
+  })
+
+  describe('when pull request is opened', () => {
+    test('everything is ok', async () => {
+      kanban.moveCard = jest.fn()
+      branchUtils.getIssueNumberFromBrancheName = jest.fn()
+      pullRequestUtils.linkPullRequestWithIssue = jest.fn()
+      await probot.receive({name: 'pull_request', payload: payloadPullRequestOpen})
+      expect(pullRequestUtils.linkPullRequestWithIssue).toHaveBeenCalled()
+      expect(branchUtils.getIssueNumberFromBrancheName).toHaveBeenCalled()
+      expect(kanban.moveCard).toHaveBeenCalled()
+    })
+    test('link pr with issue crash', async () => {
+      pullRequestUtils.linkPullRequestWithIssue = jest.fn(() => {throw Error('error')})
+      branchUtils.getIssueNumberFromBrancheName = jest.fn()
+      kanban.moveCard = jest.fn()
+      await probot.receive({name: 'pull_request', payload: payloadPullRequestOpen})
+      expect(pullRequestUtils.linkPullRequestWithIssue).toHaveBeenCalled()
+      expect(branchUtils.getIssueNumberFromBrancheName).not.toHaveBeenCalled()
+      expect(kanban.moveCard).not.toHaveBeenCalled()
+    })
+    test('move card crash', async () => {
+      pullRequestUtils.linkPullRequestWithIssue = jest.fn()
+      branchUtils.getIssueNumberFromBrancheName = jest.fn()
+      kanban.moveCard = jest.fn(() => {throw Error('error')})
+      await probot.receive({name: 'pull_request', payload: payloadPullRequestOpen})
+      expect(pullRequestUtils.linkPullRequestWithIssue).toHaveBeenCalled()
+      expect(branchUtils.getIssueNumberFromBrancheName).toHaveBeenCalled()
+      expect(kanban.moveCard).toHaveBeenCalled()
+    })
   })
 
   afterEach(() => {
