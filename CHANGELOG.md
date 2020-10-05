@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/Singebob/bot-projet-mspr/compare/v1.1.2...v1.2.0) (2020-10-05)
+
+
+### Features
+
+* get default branch from repo ([3f3501e](https://github.com/Singebob/bot-projet-mspr/commit/3f3501e404aad2934302bfbf0ed44551d7d05f6b))
+
 ## [1.1.2](https://github.com/Singebob/bot-projet-mspr/compare/v1.1.1...v1.1.2) (2020-10-05)
 
 
