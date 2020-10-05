@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Singebob/bot-projet-mspr/compare/v1.1.0...v1.1.1) (2020-10-05)
+
+
+### Bug Fixes
+
+* **main:** detect branch main ([362c334](https://github.com/Singebob/bot-projet-mspr/commit/362c334538a29eff03fe711c08786daee3f69fdf))
+
 # [1.1.0](https://github.com/Singebob/bot-projet-mspr/compare/v1.0.1...v1.1.0) (2020-03-25)
 
 
