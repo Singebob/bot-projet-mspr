@@ -1,23 +1,49 @@
-# test-probot
+<h1 align="center">Welcome to bot-projet-mspr 👋</h1>
+<p>
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-blue.svg?cacheSeconds=2592000" />
+  <img src="https://img.shields.io/badge/node-%3E%3D%208.3.0-blue.svg" />
+  <a href="#" target="_blank">
+    <img alt="License: ISC" src="https://img.shields.io/badge/License-ISC-yellow.svg" />
+  </a>
+  <a href="https://twitter.com/Singebob" target="_blank">
+    <img alt="Twitter: Singebob" src="https://img.shields.io/twitter/follow/Singebob.svg?style=social" />
+  </a>
+</p>
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that A Probot app
+> A Probot app
 
-## Setup
+## Prerequisites
+
+- node >= 8.3.0
+
+## Install
 
 ```sh
-# Install dependencies
 npm install
-
-# Run the bot
-npm start
 ```
 
-## Contributing
+## Usage
 
-If you have suggestions for how test-probot could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
+```sh
+npm run start
+```
 
-For more, check out the [Contributing Guide](CONTRIBUTING.md).
+## Run tests
 
-## License
+```sh
+npm run test
+```
 
-[ISC](LICENSE) © 2020 Jeremy Chauvin <jeremie.chauvin@epsi.fr>
+## Author
+
+👤 **Jeremy Chauvin <jeremie.chauvin@epsi.fr>**
+
+* Twitter: [@Singebob](https://twitter.com/Singebob)
+* Github: [@Singebob](https://github.com/Singebob)
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+***
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
