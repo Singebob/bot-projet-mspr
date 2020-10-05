@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/Singebob/bot-projet-mspr/compare/v1.1.1...v1.1.2) (2020-10-05)
+
+
+### Bug Fixes
+
+* **master:** create branch from develop ([586db8c](https://github.com/Singebob/bot-projet-mspr/commit/586db8c001d626e01e40e5664ff311a9ca362503))
+
 ## [1.1.1](https://github.com/Singebob/bot-projet-mspr/compare/v1.1.0...v1.1.1) (2020-10-05)
 
 
