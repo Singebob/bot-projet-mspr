@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/Singebob/bot-projet-mspr/compare/v1.3.0...v1.3.1) (2020-10-14)
+
+
+### Bug Fixes
+
+* **ci:** fix deploy ([5c9fc92](https://github.com/Singebob/bot-projet-mspr/commit/5c9fc92f3045eb9c62920ef161f65413d8499d81))
+
 # [1.3.0](https://github.com/Singebob/bot-projet-mspr/compare/v1.2.0...v1.3.0) (2020-10-05)
 
 
