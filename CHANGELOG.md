@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/Singebob/bot-projet-mspr/compare/v1.3.1...v1.3.2) (2020-10-15)
+
+
+### Bug Fixes
+
+* **label:** add comment when issue don't have a label ([87a5f59](https://github.com/Singebob/bot-projet-mspr/commit/87a5f59f2abe0228ef84d32a3697c77f71ae7a21))
+
 ## [1.3.1](https://github.com/Singebob/bot-projet-mspr/compare/v1.3.0...v1.3.1) (2020-10-14)
 
 
