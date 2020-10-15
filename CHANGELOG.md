@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/Singebob/bot-projet-mspr/compare/v1.3.2...v1.4.0) (2020-10-15)
+
+
+### Features
+
+* **project:** add error message when project not found ([379f30f](https://github.com/Singebob/bot-projet-mspr/commit/379f30fd0e606140791300dc61828261d097fdf8))
+
 ## [1.3.2](https://github.com/Singebob/bot-projet-mspr/compare/v1.3.1...v1.3.2) (2020-10-15)
 
 
