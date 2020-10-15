@@ -10,6 +10,9 @@ const registerIssueToKanban =  async (context) => {
       content_id: context.payload.issue.id
     })
   } catch (error) {
+    if(error.message == "Project not found") {
+      await addCommentToIssue("Project not found")
+    }
     throw error;
   }
 }
