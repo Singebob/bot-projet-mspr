@@ -20,7 +20,7 @@ describe('label util', () => {
         },
         github: {
           issues: {
-            listLabelsOnIssue: jest.fn(() => [{name: 'label'}])
+            listLabelsOnIssue: jest.fn(() => {return { data: [{name: 'label'}]}})
           }
         }
       }
