@@ -26,10 +26,10 @@ module.exports = app => {
   app.on('issue_comment.created', async (context) => {
     try {
       if (commentUtils.checkContentCib(context.payload.comment.body)) {
-        await issueUtils.assigneUser(context, context.payload.comment.user.login)      
+        await issueUtils.assigneUser(context, context.payload.comment.user.login)
         const labelsOnIssue = await labelUtils.listLabelOnIssue(context)
         if(labelsOnIssue < 1) {
-          issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ ")
+          issueUtils.addCommentToIssue(context, " ¯\\\\\\_(ツ)\\_/¯ Impossible to create a branch ¯\\\\\\_(ツ)\\_/¯ \n This issue don't have a label")
           return 0
         }
         const prefixBrancName = await branchUtils.findBrancheName(labelsOnIssue)
