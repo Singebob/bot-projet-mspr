@@ -22,7 +22,7 @@ const branches = [
 ]
 
 const findBrancheName = (label) => {
-  const branchesName = branches.find(branche => branche.label == label.data[0].name)
+  const branchesName = branches.find(branche => branche.label == label[0].name)
   return branchesName.prefix
 }
 
