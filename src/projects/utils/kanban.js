@@ -8,15 +8,12 @@ const getProjectKanban = async (context) => {
   throw Error("Project not found")
 }
 
-const getColumn = (context, project, name) => {
-  return new Promise((resolve, reject) => {
-    context.github.projects.listColumns({ project_id: project.id })
-      .then(resColumns => {
-        const columns = resColumns.data.filter(column => column.name === name)
-        columns.length >= 1 ? resolve(columns[0]) : reject('no columns')
-      })
-      .catch(err => reject(err))
-  })
+const getColumn = async (context, project, name) => {
+  const columns = await context.github.projects.listColumns({ project_id: project.id })
+  const columnsWithName = columns.data.filter(column => column.name === name)
+  if (columnsWithName.length >= 1)
+    return columnsWithName[0]
+  throw Error('column not found')
 }
 
 const getCard = (context, project, columnName, issueNumber) => {

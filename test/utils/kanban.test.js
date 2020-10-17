@@ -48,4 +48,48 @@ describe('kanban utils', () => {
       }
     })
   })
+
+  describe('getColumn', () => {
+    test('all is fine', async () => {
+      const context = {
+        payload: {
+          repository: {
+            name: 'botProjet',
+            owner: {
+              login: 'Singebob',
+            }
+          }
+        },
+        github: {
+          projects: {
+            listColumns: jest.fn(() => {return {data: [{name: 'To do'}]}})
+          }
+        }
+      }
+      const result = await kanbanUtils.getColumn(context, {}, 'To do')
+      expect(result).toEqual({name: 'To do'})
+    })
+    test('column not found on result', async () => {
+      const context = {
+        payload: {
+          repository: {
+            name: 'botProjet',
+            owner: {
+              login: 'Singebob',
+            }
+          }
+        },
+        github: {
+          projects: {
+            listColumns: jest.fn(() => {return {data: [{name: 'Doing'}]}})
+          }
+        }
+      }
+      try {
+        await kanbanUtils.getColumn(context, {}, 'To do')
+      } catch (error) {
+        expect(error.message).toEqual('column not found') 
+      }
+    })
+  })
 })
